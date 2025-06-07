@@ -54,12 +54,25 @@ jobs:
           fi
           cargo build --release --target ${{ matrix.target }}
 
+      - name: Debug - List files
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Looking for .env.example:"
+          find . -name ".env.example" -type f
+          echo "Looking for system_monitor_mqtt.service:"
+          find . -name "system_monitor_mqtt.service" -type f
+
       - name: Create artifact directory
         run: |
           mkdir -p artifacts
           cp target/${{ matrix.target }}/release/system-monitor artifacts/
           cp .env.example artifacts/
           cp system_monitor_mqtt.service artifacts/
+          echo "Artifacts directory contents:"
+          ls -la artifacts/
 
       - name: Create tarball
         run: |
