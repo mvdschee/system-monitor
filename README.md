@@ -35,19 +35,25 @@ To ensure reliable communication with your Home Assistant instance, you'll need 
    tar -xzf system-monitor-mqtt-*.tar.gz
    ```
 
-3. Copy the systemd service file:
+3. make the file executable:
 
    ```bash
-   sudo cp system_monitor_mqtt.service /etc/systemd/system/
+   chmod u+x system-monitor
    ```
 
-4. Configure the service (edit the service file with your MQTT broker details):
+4. Copy the systemd service file:
+
+   ```bash
+   sudo mv system_monitor_mqtt.service /etc/systemd/system/
+   ```
+
+5. Configure the service (edit the service file with your MQTT broker details):
 
    ```bash
    sudo nano /etc/systemd/system/system_monitor_mqtt.service
    ```
 
-5. Enable and start the service:
+6. Enable and start the service:
    ```bash
    sudo systemctl enable system_monitor_mqtt.service
    sudo systemctl start system_monitor_mqtt.service

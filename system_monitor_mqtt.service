@@ -7,10 +7,15 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/user/system_monitor
+ExecStart=/home/user/system-monitor
+Environment=CLIENT_ID=your_system_unique_name
+Environment=MQTT_HOST=127.0.0.1
+Environment=MQTT_USERNAME=home_assistant_username
+Environment=MQTT_PASSWORD=home_assistant_password
 Restart=on-failure
 RestartSec=5s
 StandardOutput=null
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target

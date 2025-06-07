@@ -58,13 +58,12 @@ jobs:
         run: |
           mkdir -p artifacts
           cp target/${{ matrix.target }}/release/system-monitor artifacts/
-          cp .env.example artifacts/
           cp system_monitor_mqtt.service artifacts/
 
       - name: Create tarball
         run: |
           cd artifacts
-          tar -czf ../system-monitor-${{ matrix.arch }}-linux.tar.gz system-monitor .env.example system_monitor_mqtt.service
+          tar -czf ../system-monitor-${{ matrix.arch }}-linux.tar.gz *
           cd ..
 
       - name: Upload artifacts
@@ -103,7 +102,6 @@ jobs:
 
             ## Included files:
             - `system-monitor` - The main binary
-            - `.env.example` - Example environment configuration
             - `system_monitor_mqtt.service` - Systemd service file
 
             ## Supported architectures:
