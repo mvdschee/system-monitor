@@ -14,7 +14,7 @@ Environment=MQTT_USERNAME=home_assistant_username
 Environment=MQTT_PASSWORD=home_assistant_password
 Restart=on-failure
 RestartSec=5s
-StandardOutput=null
+StandardOutput=journal
 StandardError=journal
 
 [Install]
