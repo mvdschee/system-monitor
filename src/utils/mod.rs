@@ -1,35 +1,19 @@
+use crate::models::{ByteInfo, ByteUnit};
 
-#[macro_export]
-macro_rules! status {
-    ($($arg:tt)*) => {
-        println!("\x1b[90m{} \x1b[0m{}", chrono::Local::now().format("%H:%M:%S%.3f %d-%m-%y"), format_args!($($arg)*))
-    };
+pub mod macros;
+
+pub fn format_bytes(bytes: u64, byte_unit: ByteUnit) -> ByteInfo {
+	format_bytes_with_precision(bytes, byte_unit, 2)
 }
 
-#[macro_export]
-macro_rules! tagged_status {
-    ($tag:expr, $($arg:tt)*) => {
-        println!("\x1b[90m{} \x1b[35m{} \x1b[0m{}", chrono::Local::now().format("%H:%M:%S%.3f %d-%m-%y"), $tag, format_args!($($arg)*))
-    };
-}
+pub fn format_bytes_with_precision(bytes: u64, byte_unit: ByteUnit, precision: usize) -> ByteInfo {
+	let raw_value = bytes as f64 / byte_unit.to_bytes();
+	let multiplier = 10_f64.powi(precision as i32);
+	let rounded_value = (raw_value * multiplier).round() / multiplier;
 
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {
-        println!("\x1b[90m{} \x1b[32m{} \x1b[0m{}", chrono::Local::now().format("%H:%M:%S%.3f %d-%m-%y"), "[INFO]", format_args!($($arg)*))
-    };
-}
-
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        println!("\x1b[90m{} \x1b[33m{} \x1b[0m{}", chrono::Local::now().format("%H:%M:%S%.3f %d-%m-%y"), "[WARN]", format_args!($($arg)*))
-    };
-}
-
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        println!("\x1b[90m{} \x1b[31m{} \x1b[0m{}", chrono::Local::now().format("%H:%M:%S%.3f %d-%m-%y"), "[ERROR]", format_args!($($arg)*))
-    };
+	ByteInfo {
+		value: rounded_value,
+		unit: byte_unit.to_string(),
+		precision,
+	}
 }

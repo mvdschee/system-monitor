@@ -12,6 +12,9 @@ unused = { level = "allow", priority = -1 }
 # MQTT client
 rumqttc = "0.24"
 
+# data storage
+dashmap = "6.1.0"
+
 # System information
 sysinfo = "0.35.2"
 

@@ -9,3 +9,6 @@ start:
 
 test:
 	cargo test -- --nocapture
+
+prod:
+	cd ./target/release/ && ./system-monitor
