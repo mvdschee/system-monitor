@@ -6,7 +6,6 @@ use crate::{
 pub use core::models;
 pub use error::{Error, Result};
 use repository::memory::SystemReportStore;
-use std::{thread, time::Duration};
 
 mod config;
 mod core;
@@ -17,13 +16,13 @@ mod utils;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-	tagged_status!("[MAIN]", "booting...");
+	info!("initializing...");
 
 	let config = Config::new()?;
 	let store = SystemReportStore::new();
 
 	let producer_store = store.clone();
-	let mut monitor = SystemMonitor::new(config.clone(), producer_store);
+	let monitor = SystemMonitor::new(config.clone(), producer_store);
 
 	if !monitor.check_support() {
 		return Err(Error::UnsupportedOS);
@@ -32,10 +31,8 @@ async fn main() -> Result<()> {
 	let broker = Broker::new(config.clone());
 	let reporter = SystemReporter::new(config, store, broker);
 
-	// start monitoring system resources
 	monitor.run();
 
-	// run the reporter
 	reporter.register();
 	reporter.run();
 

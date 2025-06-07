@@ -7,7 +7,9 @@ pub struct Config {
 	pub broker_port: u16,
 	pub broker_uri: String,
 	pub broker_username: String,
-	pub byte_unit: ByteUnit,
+	pub storage_unit: ByteUnit,
+	pub network_unit: ByteUnit,
+	pub memory_unit: ByteUnit,
 	pub client_id: String,
 	pub program_name: String,
 	pub report_interval: u64,
@@ -20,7 +22,9 @@ impl Config {
 		let client_id = load_env("CLIENT_ID")?;
 		let report_interval =
 			load_env("REPORT_INTERVAL")?.parse::<u64>().map_err(|_| Error::EnvParseError)?;
-		let byte_unit = load_env("BYTE_UNIT")?;
+		let storage_unit = load_env("STORAGE_UNIT")?;
+		let network_unit = load_env("NETWORK_UNIT")?;
+		let memory_unit = load_env("MEMORY_UNIT")?;
 		let broker_uri = load_env("BROKER_URI")?;
 		let broker_port =
 			load_env("BROKER_PORT")?.parse::<u16>().map_err(|_| Error::EnvParseError)?;
@@ -32,7 +36,9 @@ impl Config {
 			broker_port,
 			broker_uri,
 			broker_username,
-			byte_unit: ByteUnit::parse(&byte_unit),
+			storage_unit: ByteUnit::parse(&storage_unit),
+			network_unit: ByteUnit::parse(&network_unit),
+			memory_unit: ByteUnit::parse(&memory_unit),
 			client_id,
 			program_name: "system_monitor".to_string(),
 			report_interval,

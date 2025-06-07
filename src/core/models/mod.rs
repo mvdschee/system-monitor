@@ -6,6 +6,9 @@ pub struct SystemReport {
 	pub ram_usage: ByteInfo,
 	pub disk_total: ByteInfo,
 	pub disk_usage: ByteInfo,
+	pub cpu_usage: String,
+	pub network_received: ByteInfo,
+	pub network_transmitted: ByteInfo,
 }
 
 impl fmt::Display for SystemReport {
@@ -16,16 +19,24 @@ impl fmt::Display for SystemReport {
 "ram_total": {:.prec_ram_total$},
 "ram_usage": {:.prec_ram_usage$},
 "disk_total": {:.prec_disk_total$},
-"disk_usage": {:.prec_disk_usage$}
+"disk_usage": {:.prec_disk_usage$},
+"cpu_usage": {},
+"network_received": {:.prec_network_received$},
+"network_transmitted": {:.prec_network_transmitted$}
 }}"#,
 			self.ram_total.value,
 			self.ram_usage.value,
 			self.disk_total.value,
 			self.disk_usage.value,
+			self.cpu_usage,
+			self.network_received.value,
+			self.network_transmitted.value,
 			prec_ram_total = self.ram_total.precision,
 			prec_ram_usage = self.ram_usage.precision,
 			prec_disk_total = self.disk_total.precision,
 			prec_disk_usage = self.disk_usage.precision,
+			prec_network_received = self.network_received.precision,
+			prec_network_transmitted = self.network_transmitted.precision,
 		)
 	}
 }
