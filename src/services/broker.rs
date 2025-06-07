@@ -13,7 +13,7 @@ impl Broker {
 		info!("broker setup...");
 
 		let mut mqttoptions =
-			MqttOptions::new("rumqtt-sync", config.broker_uri.clone(), config.broker_port);
+			MqttOptions::new("rumqtt-sync", config.broker_host.clone(), config.broker_port);
 		mqttoptions.set_keep_alive(Duration::from_secs(5));
 		mqttoptions.set_credentials(config.broker_username.clone(), config.broker_password.clone());
 

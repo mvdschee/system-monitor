@@ -1,0 +1,142 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build for ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            arch: x86_64
+          - target: aarch64-unknown-linux-gnu
+            arch: aarch64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install cross-compilation tools
+      run: |
+        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+        fi
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Cache cargo index
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Cache cargo build
+      uses: actions/cache@v3
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-target-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build
+      run: |
+        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+          export CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
+        fi
+        cargo build --release --target ${{ matrix.target }}
+
+    - name: Create artifact directory
+      run: |
+        mkdir -p artifacts
+        cp target/${{ matrix.target }}/release/system-monitor artifacts/
+        cp .env.example artifacts/
+        cp system_monitor_mqtt.service artifacts/
+
+    - name: Create tarball
+      run: |
+        cd artifacts
+        tar -czf ../system-monitor-${{ matrix.arch }}-linux.tar.gz *
+        cd ..
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: system-monitor-${{ matrix.arch }}-linux
+        path: system-monitor-${{ matrix.arch }}-linux.tar.gz
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Generate release tag
+      id: tag
+      run: |
+        echo "tag=v$(date +'%Y.%m.%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        release_name: Release ${{ steps.tag.outputs.tag }}
+        body: |
+          Automated release for commit ${{ github.sha }}
+          
+          ## Included files:
+          - `system-monitor` - The main binary
+          - `.env.example` - Example environment configuration
+          - `system_monitor_mqtt.service` - Systemd service file
+          
+          ## Supported architectures:
+          - Linux x86_64
+          - Linux ARM64 (aarch64)
+        draft: false
+        prerelease: false
+
+    - name: Upload x86_64 Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./system-monitor-x86_64-linux/system-monitor-x86_64-linux.tar.gz
+        asset_name: system-monitor-x86_64-linux.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload ARM64 Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./system-monitor-aarch64-linux/system-monitor-aarch64-linux.tar.gz
+        asset_name: system-monitor-aarch64-linux.tar.gz
+        asset_content_type: application/gzip
