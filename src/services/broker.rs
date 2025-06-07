@@ -40,6 +40,10 @@ impl Broker {
 	}
 
 	pub fn publish(&self, topic: &str, payload: String) {
-		let _ = self.client.publish(topic, QoS::AtMostOnce, false, payload);
+		let result = self.client.publish(topic, QoS::AtLeastOnce, false, payload);
+
+		if let Err(err) = result {
+			error!("Error publishing message: {:?}", err);
+		}
 	}
 }
