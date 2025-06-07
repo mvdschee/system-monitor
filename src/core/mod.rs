@@ -58,13 +58,15 @@ impl SystemReporter {
 			let config_topic =
 				format!("homeassistant/sensor/{}_{}/config", self.config.client_id, sensor);
 
+			let unique_id = format!("{}_{}", self.config.client_id, sensor);
+
 			let value_template = format!("{{{{ value_json.{} }}}}", sensor);
 			let config = if sensor == "cpu_usage" {
 				serde_json::json!({
 					"state_topic": topic,
 					"unit_of_measurement": "%",
 					"value_template": value_template,
-					"unique_id": sensor,
+					"unique_id": unique_id,
 					"name": sensor.replace("_", " "),
 					"state_class": "measurement",
 					"device": {
@@ -80,7 +82,7 @@ impl SystemReporter {
 					"state_topic": topic,
 					"unit_of_measurement": "MB/s",
 					"value_template": value_template,
-					"unique_id": sensor,
+					"unique_id": unique_id,
 					"name": sensor.replace("_", " "),
 					"state_class": "measurement",
 					"device": {
@@ -102,7 +104,7 @@ impl SystemReporter {
 					"state_topic": topic,
 					"unit_of_measurement": unit,
 					"value_template": value_template,
-					"unique_id": sensor,
+					"unique_id": unique_id,
 					"name": sensor.replace("_", " "),
 					"state_class": "total",
 					"device": {
