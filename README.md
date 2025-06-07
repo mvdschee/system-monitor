@@ -1,3 +1,5 @@
+![](./readme.png)
+
 # System Monitor MQTT
 
 A lightweight Rust-based system resource monitor that reports metrics to Home Assistant via MQTT.
