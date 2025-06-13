@@ -29,12 +29,23 @@ async fn main() -> Result<()> {
 	}
 
 	let broker = Broker::new(config.clone());
-	let reporter = SystemReporter::new(config, store, broker);
 
-	monitor.run();
+	let result = broker.wait_until_ready();
 
-	reporter.register();
-	reporter.run();
+	match result {
+		Ok(_) => {
+			let reporter = SystemReporter::new(config, store, broker);
+
+			monitor.run();
+
+			reporter.register();
+			reporter.run();
+		}
+		Err(_) => {
+			error!("Failed to connect to broker");
+			return Err(Error::MainLoopClosed);
+		}
+	}
 
 	Err(Error::MainLoopClosed)
 }
