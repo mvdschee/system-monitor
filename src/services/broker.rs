@@ -4,7 +4,7 @@ use rumqttc::{Client, Connection, Event, MqttOptions, QoS};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub struct Broker {
 	client: Client,
@@ -15,8 +15,11 @@ impl Broker {
 	pub fn new(config: Config) -> Self {
 		info!("broker setup...");
 
+		let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+		let client_id = format!("{}-{}", config.client_id, timestamp);
+
 		let mut mqttoptions =
-			MqttOptions::new("rumqtt-sync", config.broker_host.clone(), config.broker_port);
+			MqttOptions::new(client_id, config.broker_host.clone(), config.broker_port);
 		mqttoptions.set_keep_alive(Duration::from_secs(5));
 		mqttoptions.set_credentials(config.broker_username.clone(), config.broker_password.clone());
 
