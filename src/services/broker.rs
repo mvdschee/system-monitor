@@ -20,7 +20,7 @@ impl Broker {
 		mqttoptions.set_keep_alive(Duration::from_secs(5));
 		mqttoptions.set_credentials(config.broker_username.clone(), config.broker_password.clone());
 
-		let (client, connection) = Client::new(mqttoptions.clone(), 10);
+		let (client, connection) = Client::new(mqttoptions.clone(), 100);
 
 		let is_connected = Arc::new(AtomicBool::new(false));
 		let is_connected_clone = is_connected.clone();
@@ -36,20 +36,30 @@ impl Broker {
 	}
 
 	fn handle_connection(mut connection: Connection, is_connected: Arc<AtomicBool>) {
+		let mut backoff_secs = 1;
+
 		for notification in connection.iter() {
 			match notification {
 				Ok(Event::Incoming(rumqttc::Packet::ConnAck(_))) => {
 					info!("Broker connection established");
 					is_connected.store(true, Ordering::SeqCst);
+					backoff_secs = 1; // Reset backoff on successful connection
 				}
 				Ok(Event::Incoming(rumqttc::Packet::Disconnect)) => {
 					error!("Broker disconnected");
 					is_connected.store(false, Ordering::SeqCst);
 				}
 				Err(err) => {
-					error!("Error in notification: {:?}", err);
 					is_connected.store(false, Ordering::SeqCst);
-					continue;
+
+					// Check if it's a connection abort error
+					if format!("{:?}", err).contains("ConnectionAborted") {
+						error!("Connection aborted, waiting {} seconds before retry", backoff_secs);
+						thread::sleep(Duration::from_secs(backoff_secs));
+						backoff_secs = (backoff_secs * 2).min(30); // Max 30 seconds
+					} else {
+						error!("Error in notification: {:?}", err);
+					}
 				}
 				_ => {}
 			}
